@@ -1,0 +1,10 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+.venv/
+venv/
+evidencias/
+README.md
+Dockerfile
+compose.yaml

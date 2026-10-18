@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analizador de representación de datos</title>
+  <style>
+    :root { --bg:#f5f6f8; --card:#fff; --ink:#1c2330; --muted:#5b6575; --accent:#1f5fbf; --err:#b3261e; --errbg:#fdecea; --line:#d9dde4; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+    header { background:var(--ink); color:#fff; padding:1.25rem 1rem; }
+    header h1 { margin:0; font-size:1.4rem; }
+    header p { margin:.25rem 0 0; color:#c8d0de; font-size:.95rem; }
+    main { max-width:960px; margin:0 auto; padding:1rem; display:grid; gap:1.25rem; }
+    section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:1.25rem; }
+    h2 { margin:0 0 .75rem; font-size:1.15rem; }
+    form { display:flex; flex-wrap:wrap; gap:.75rem; align-items:flex-end; }
+    label { display:block; font-size:.85rem; font-weight:600; color:var(--muted); margin-bottom:.2rem; }
+    input[type=text], select { font:inherit; padding:.5rem .6rem; border:1px solid var(--line); border-radius:6px; min-width:12rem; }
+    button { font:inherit; font-weight:600; padding:.55rem 1.1rem; border:0; border-radius:6px; background:var(--accent); color:#fff; cursor:pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline:3px solid #8db4ef; outline-offset:2px; }
+    .error { flex-basis:100%; margin:0; padding:.6rem .8rem; background:var(--errbg); color:var(--err); border-left:4px solid var(--err); border-radius:4px; font-size:.95rem; }
+    table { width:100%; border-collapse:collapse; margin-top:1rem; font-size:.95rem; }
+    th, td { text-align:left; padding:.5rem .6rem; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-weight:600; width:14rem; }
+    .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+    .tabla-chars th { width:auto; }
+    .ch { font-size:1.25rem; font-weight:700; }
+    .nota { color:var(--muted); font-size:.85rem; margin:.6rem 0 0; }
+    .tabla-wrap { overflow-x:auto; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Analizador de representación de datos</h1>
+  <p>Sistemas numéricos, codificación de caracteres (UTF-8) y ejecución en contenedores.</p>
+</header>
+<main>
+  <section aria-labelledby="t-num">
+    <h2 id="t-num">1. Conversión de números</h2>
+    <form method="post" action="{% url 'analizador:numero' %}" novalidate>
+      {% csrf_token %}
+      <div>
+        <label for="{{ numero_form.numero.id_for_label }}">{{ numero_form.numero.label }}</label>
+        {{ numero_form.numero }}
+      </div>
+      <div>
+        <label for="{{ numero_form.base.id_for_label }}">{{ numero_form.base.label }}</label>
+        {{ numero_form.base }}
+      </div>
+      <button type="submit">Convertir</button>
+      {% for campo in numero_form %}{% for e in campo.errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}{% endfor %}
+      {% for e in numero_form.non_field_errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}
+    </form>
+    <p class="nota">Rango permitido: 0 a 65 535 (16 bits). Los dígitos hexadecimales no distinguen mayúsculas de minúsculas.</p>
+
+    {% if resultado %}
+    <div class="tabla-wrap">
+    <table aria-label="Resultado de la conversión">
+      <tr><th scope="row">Decimal</th><td class="mono" id="res-decimal">{{ resultado.decimal }}</td></tr>
+      <tr><th scope="row">Binario (ajustado a bytes)</th><td class="mono" id="res-binario">{{ resultado.binario }}</td></tr>
+      <tr><th scope="row">Octal</th><td class="mono" id="res-octal">{{ resultado.octal }}</td></tr>
+      <tr><th scope="row">Hexadecimal</th><td class="mono" id="res-hex">{{ resultado.hexadecimal }}</td></tr>
+      <tr><th scope="row">Bits significativos</th><td id="res-bits">{{ resultado.bits_significativos }}</td></tr>
+      <tr><th scope="row">Bytes necesarios</th><td id="res-bytes">{{ resultado.bytes_necesarios }}</td></tr>
+    </table>
+    </div>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="t-txt">
+    <h2 id="t-txt">2. Análisis de caracteres y UTF-8</h2>
+    <form method="post" action="{% url 'analizador:texto' %}" novalidate>
+      {% csrf_token %}
+      <div>
+        <label for="{{ texto_form.texto.id_for_label }}">{{ texto_form.texto.label }}</label>
+        {{ texto_form.texto }}
+      </div>
+      <button type="submit">Analizar</button>
+      {% for campo in texto_form %}{% for e in campo.errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}{% endfor %}
+      {% for e in texto_form.non_field_errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}
+    </form>
+
+    {% if filas %}
+    <div class="tabla-wrap">
+    <table class="tabla-chars" aria-label="Análisis por carácter">
+      <thead>
+        <tr><th scope="col">Carácter</th><th scope="col">Decimal</th><th scope="col">Punto de código</th><th scope="col">Hexadecimal</th><th scope="col">Bytes UTF-8</th></tr>
+      </thead>
+      <tbody>
+      {% for f in filas %}
+        <tr>
+          <td class="ch">{% if f.caracter == " " %}(espacio){% else %}{{ f.caracter }}{% endif %}</td>
+          <td class="mono">{{ f.decimal }}</td>
+          <td class="mono">{{ f.punto_codigo }}</td>
+          <td class="mono">{{ f.hexadecimal }}</td>
+          <td class="mono">{{ f.bytes_utf8 }} <span class="nota">({{ f.cantidad_bytes }} byte{{ f.cantidad_bytes|pluralize }})</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% endif %}
+  </section>
+</main>
+</body>
+</html>

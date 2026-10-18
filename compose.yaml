@@ -1,0 +1,21 @@
+services:
+  web:
+    build: .
+    image: analizador-datos:1.0
+    container_name: analizador-datos
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_SECRET_KEY: "cambie-esta-clave-en-produccion"
+      DJANGO_DEBUG: "0"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+    # Límites de recursos: 256 MB de RAM y 1 CPU
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 1.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

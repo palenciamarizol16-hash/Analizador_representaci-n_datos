@@ -1,0 +1,5 @@
+﻿CONTAINER ID   NAME               CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O     PIDS
+314187de9aec   analizador-datos   0.01%     77.49MiB / 256MiB   30.27%    4.36kB / 6.55kB   11.9MB / 0B   4
+Memoria=268435456 bytes  NanoCpus=1000000000
+NAME               IMAGE                  COMMAND                  SERVICE   CREATED         STATUS                   PORTS
+analizador-datos   analizador-datos:1.0   "gunicorn config.wsgΓÇª"   web       3 minutes ago   Up 3 minutes (healthy)   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
