@@ -33,7 +33,7 @@ analizador/
     ├── forms.py            # NumeroForm y TextoForm
     ├── views.py / urls.py
     ├── templates/analizador/index.html
-    └── tests.py            # 15 pruebas automatizadas
+    └── tests.py            # 16 pruebas automatizadas
 ```
 
 La lógica vive en `servicios.py` (sin dependencia de Django), los formularios la llaman desde `clean()`
@@ -97,12 +97,16 @@ docker stats analizador-datos --no-stream
 docker inspect analizador-datos --format 'Memoria={{.HostConfig.Memory}} bytes  NanoCpus={{.HostConfig.NanoCpus}}'
 ```
 
-Resultado esperado: la columna `MEM USAGE / LIMIT` muestra `… / 256MiB` y la inspección devuelve
-`Memoria=268435456` y `NanoCpus=1000000000` (1 CPU). Guarde la captura o salida en
-`evidencias/docker-stats.txt` (o `.png`).
+Evidencia real obtenida con el contenedor en ejecución (guardada en `evidencias/docker-stats.txt`):
 
-> **Estado de la evidencia:** el archivo `evidencias/docker-stats.txt` debe generarse en su máquina
-> con los comandos anteriores; este repositorio no incluye una salida inventada.
+```
+CONTAINER ID   NAME               CPU %   MEM USAGE / LIMIT   MEM %    PIDS
+314187de9aec   analizador-datos   0.01%   77.49MiB / 256MiB   30.27%   4
+Memoria=268435456 bytes  NanoCpus=1000000000
+analizador-datos   Up 3 minutes (healthy)   0.0.0.0:8000->8000/tcp
+```
+
+El contenedor usa unos 77 MiB de su límite de 256 MiB y está configurado con 1 CPU (1 000 000 000 NanoCpus).
 
 ## Arquitectura de Von Neumann: recursos que usa la aplicación
 
@@ -134,8 +138,8 @@ los 256 MB, el kernel lo termina (OOM killer).
 
 ## Entrega
 
-- **Repositorio:** `<pegue aquí el enlace de GitHub o Google Drive con acceso público>`
-- **Video (máx. 2 min):** `<enlace>`. Guion sugerido (≈1:45):
+- **Repositorio:** [github.com/palenciamarizol16-hash/Analizador_representaci-n_datos](https://github.com/palenciamarizol16-hash/Analizador_representaci-n_datos)
+- **Video (máx. 2 min):** [video-analizador.mp4](https://github.com/palenciamarizol16-hash/Analizador_representaci-n_datos/raw/main/video/video-analizador.mp4) . Guion sugerido (≈1:45):
   1. (0:00) `docker compose up --build -d` y abrir `http://localhost:8000`.
   2. (0:15) Conversión válida: `255` base 10 → binario `11111111`, hex `FF`, 8 bits / 1 byte.
   3. (0:30) Error de validación: `1012` base 2 → mensaje de dígito inválido.
